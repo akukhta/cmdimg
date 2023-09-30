@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_executable(${PROJECT_NAME} 
 	src/Common/main.cpp
 	src/Common/Dimentions.hpp
+	src/Common/ArgsParser.ixx
+	src/Common/ArgsParser.cpp
 	src/Image/NearestNeighboorCompressor.ixx
 	src/Image/NearestNeighboorCompressor.cpp
     	src/Image/ImageParser.ixx

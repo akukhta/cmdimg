@@ -12,7 +12,7 @@ import RGB;
 
 FXTPrinter::FXTPrinter(std::pair<size_t, size_t> const& dims) : dims(dims) {}
 
-void FXTPrinter::print(std::vector<std::vector<RGB>> const &image)
+void FXTPrinter::print(std::vector<std::vector<RGB>> const &image, bool borderEnabled)
 {
     using namespace ftxui;
     auto c = Canvas(dims.first, dims.second);
@@ -29,7 +29,12 @@ void FXTPrinter::print(std::vector<std::vector<RGB>> const &image)
         }
     }
 
-    auto document = canvas(&c) | border;
+    auto document = canvas(&c);
+
+    if (borderEnabled)
+    {
+        document |= border;
+    }
 
     auto screen = Screen::Create(Dimension::Fit(document));
     
