@@ -1,8 +1,0 @@
-[requires]
-libjpeg/9e
-libpng/1.6.40
-boost/1.82.0
-
-[generators]
-CMakeDeps
-CMakeToolchain

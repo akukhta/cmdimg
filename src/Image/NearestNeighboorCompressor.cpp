@@ -24,11 +24,13 @@ void ImageCompressor::print(std::vector<std::vector<RGB>> ImageCompressor::*vecR
 	}
 }
 
-void ImageCompressor::compress(size_t width, size_t height)
+std::vector<std::vector<RGB>> ImageCompressor::compress(size_t width, size_t height)
 {
+	std::vector<std::vector<RGB>> compressed;
+
 	size_t yFactor = image.size() / height;
 	size_t xFactor = image[0].size() / width;
-
+	
 	for (size_t y = 0; y <= image.size() - yFactor; y += yFactor)
 	{
 		std::vector<RGB> compressedRow;
@@ -48,76 +50,42 @@ void ImageCompressor::compress(size_t width, size_t height)
 			compressedRow.push_back(cPixel);
 		}
 
-		compressedImage.emplace_back(std::move(compressedRow));
+		compressed.emplace_back(std::move(compressedRow));
 	}
-}
 
-//void ImageCompressor::compressBilinear(size_t width, size_t height)
-//{
-//	double scaleX = width / image[0].size();
-//	double scaleY = height / image.size();
-//
-//	double fx = x - mapX;
-//	double fy = y - mapY;
-//
-//	for (size_t y = 0; y < height; y++)
-//	{
-//		std::vector<RGB> compressedRow;
-//
-//		for (size_t x = 0; x < width; x++)
-//		{
-//			size_t mapX = x / scaleX;
-//			size_t mapY = y / scaleY;
-//
-//			std::pair<size_t, size_t> TL{ mapX, mapY };
-//			std::pair<size_t, size_t> TR{ mapX + 1, mapY };
-//			std::pair<size_t, size_t> BL{ mapX, mapY + 1 };
-//			std::pair<size_t, size_t> BR{ mapX + 1, mapY + 1 };
-//
-//			double WTL = (1 - fx) * (1 - fy);
-//			double WTR = fx * (1 - fy);
-//			double WBL = (1 - fx) * fy;
-//			double WBR = fx * fy;
-//
-//			double R = (WTL * image[TL.second][TL.first].R) + (WTR * image[TR.second][TR.first].R)
-//				+ (WBL * image[BL.second][BL.first].R) + (WBR * image[BR.second][BR.first].R);
-//
-//			double G = (WTL * image[TL.second][TL.first].G) + (WTR * image[TR.second][TR.first].G)
-//				+ (WBL * image[BL.second][BL.first].G) + (WBR * image[BR.second][BR.first].G);
-//
-//			double B = (WTL * image[TL.second][TL.first].B) + (WTR * image[TR.second][TR.first].B)
-//				+ (WBL * image[BL.second][BL.first].B) + (WBR * image[BR.second][BR.first].B);
-//
-//			compressedRow.push_back(RGB({static_cast<unsigned char>(R), static_cast<unsigned char>(G), static_cast<unsigned char>(B)}));
-//		}
-//
-//		compressedImage.emplace_back(std::move(compressedRow));
-//	}
-//}
+	return compressed;
+}
 
 RGB bilinearInterpolation(const std::vector<std::vector<RGB>>& image, double x, double y)
 {
-	// Calculate integer coordinates of the four neighboring pixels
 	int x1 = static_cast<int>(x);
 	int y1 = static_cast<int>(y);
-
-	// Fractional parts
+	
 	double fx = x - x1;
 	double fy = y - y1;
 
-	// Ensure the coordinates are within bounds
-	if (x1 < 0) x1 = 0;
-	if (y1 < 0) y1 = 0;
-	if (x1 >= image[0].size() - 1) x1 = image[0].size() - 2;
-	if (y1 >= image.size() - 1) y1 = image.size() - 2;
+	if (x1 < 0)
+	{
+		x1 = 0;
+	}
+	else if (x1 >= image[0].size() - 1)
+	{
+		x1 = image[0].size() - 2;
+	}
+	
+	if (y1 < 0)
+	{
+		y1 = 0;
+	} else if (y1 >= image.size() - 1)
+	{
+		y1 = image.size() - 2;
+	}
 
-	// Get the colors of the four neighboring pixels
 	const RGB& p1 = image[y1][x1];
 	const RGB& p2 = image[y1][x1 + 1];
 	const RGB& p3 = image[y1 + 1][x1];
 	const RGB& p4 = image[y1 + 1][x1 + 1];
 
-	// Bilinear interpolation
 	RGB result{0, 0,0};
 	result.R = static_cast<uint8_t>(
 		(1.0 - fx) * (1.0 - fy) * p1.R + fx * (1.0 - fy) * p2.R + (1.0 - fx) * fy * p3.R + fx * fy * p4.R
@@ -132,25 +100,25 @@ RGB bilinearInterpolation(const std::vector<std::vector<RGB>>& image, double x, 
 	return result;
 }
 
-void ImageCompressor::compressBilinear(size_t width, size_t height)
+std::vector<std::vector<RGB>> ImageCompressor::compressBilinear(size_t width, size_t height)
 {
 	const int resizedWidth = width;
 	const int resizedHeight = height;
 	const int originalWidth = image[0].size();
 	const int originalHeight = image.size();
 
-	std::vector<std::vector<RGB>> resizedImage(resizedHeight, std::vector<RGB>(resizedWidth));
+	std::vector<std::vector<RGB>> compressed(resizedHeight, std::vector<RGB>(resizedWidth));
 
 	for (int y = 0; y < resizedHeight; y++) {
 		for (int x = 0; x < resizedWidth; x++) {
 			double originalX = static_cast<double>(x) * (static_cast<double>(originalWidth) / static_cast<double>(resizedWidth));
 			double originalY = static_cast<double>(y) * (static_cast<double>(originalHeight) / static_cast<double>(resizedHeight));
 
-			resizedImage[y][x] = bilinearInterpolation(image, originalX, originalY);
+			compressed[y][x] = bilinearInterpolation(image, originalX, originalY);
 		}
 	}
 
-	compressedImage = std::move(resizedImage);
+	return compressed;
 }
 
 double const PI = 3.14159265;
@@ -171,9 +139,9 @@ double lfKernel(double x, int a)
 	}
 }
 
-void ImageCompressor::compressLanczos(size_t width, size_t height)
+std::vector<std::vector<RGB>> ImageCompressor::compressLanczos(size_t width, size_t height)
 {
-	std::vector<std::vector<RGB>> compr(height, std::vector<RGB>(width));
+	std::vector<std::vector<RGB>> compressed(height, std::vector<RGB>(width));
 
 	double resizeFactorX = static_cast<double>(image[0].size()) / width;
 	double resizeFactorY = static_cast<double>(image.size()) / height;
@@ -206,10 +174,10 @@ void ImageCompressor::compressLanczos(size_t width, size_t height)
 
 			pixel /= total_weight;
 
-			compr[y][x] = pixel;
+			compressed[y][x] = pixel;
 		}
 	}
 
-	compressedImage = std::move(compr);
+	return compressed;
 }
 

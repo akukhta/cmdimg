@@ -13,7 +13,7 @@ export class FXTPrinter
 {
 public:
 	FXTPrinter(std::pair<size_t, size_t> const &dims);
-	void print(std::vector<std::vector<RGB>> image);
+	void print(std::vector<std::vector<RGB>> const &image);
 
 private:
 	std::pair<size_t, size_t> dims;

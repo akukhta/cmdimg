@@ -26,13 +26,14 @@ int main(int argc, char ** argv)
     {
         pixels = parser.parseImage(path);
     }
-    catch (...)
+    catch (std::exception &ex)
     {
+        std::cout << ex.what() << std::endl;
         return -1;
     }
 
     ImageCompressor compressor{ std::move(pixels) };
-    compressor.compressBilinear(dims.first, dims.second);
-    printer.print(compressor.compressedImage);
+    auto compressedImage = compressor.compressBilinear(dims.first, dims.second);
+    printer.print(compressedImage);
     return 0;
 }

@@ -9,8 +9,8 @@ add_executable(${PROJECT_NAME}
 	src/Common/Dimentions.hpp
 	src/Image/NearestNeighboorCompressor.ixx
 	src/Image/NearestNeighboorCompressor.cpp
-    src/Image/ImageParser.ixx
-    src/Image/ImageParser.cpp
+    	src/Image/ImageParser.ixx
+    	src/Image/ImageParser.cpp
 	src/Image/RGB.ixx
 	src/Image/RGB.cpp
 	src/GUI/fxtprinter.ixx
@@ -36,7 +36,6 @@ else()
 endif()
 
 set(LIBRARY_NAMES ftxui-component.lib ftxui-dom.lib ftxui-screen.lib)
-
 set(LIBRARY_PATHS "")
 
 foreach(LIBRARY_NAME ${LIBRARY_NAMES})
@@ -53,9 +52,19 @@ foreach(LIBRARY_NAME ${LIBRARY_NAMES})
     list(APPEND LIBRARY_PATHS ${LIB_${LIBRARY_NAME}_LIBRARY})
 endforeach()
 
-find_package(Boost REQUIRED)
-find_package(PNG REQUIRED)
-find_package(JPEG REQUIRED)
+set( OpenCV_DIR )
+if( NOT CMAKE_CL_64 )
+  set( OpenCV_DIR "C:/vcpkg/installed/x86-windows/share/opencv" )
+else()
+  set( OpenCV_DIR "C:/vcpkg/installed/x64-windows/share/opencv" )
+endif()
 
-target_link_libraries(cmdimg PRIVATE ${LIBRARY_PATHS} PNG::PNG JPEG::JPEG)
-target_include_directories(cmdimg PRIVATE ${boost_include_dirs} ${JPEG_INCLUDE_DIR})
+find_package(OpenCV REQUIRED)
+
+if( OpenCV_FOUND )
+  include_directories( ${OpenCV_INCLUDE_DIRS} )
+  link_directories( ${OpenCV_LIB_DIR} )
+  target_link_libraries(cmdimg ${OpenCV_LIBS} )
+endif()
+
+target_link_libraries(cmdimg ${LIBRARY_PATHS})

@@ -12,7 +12,7 @@ import RGB;
 
 FXTPrinter::FXTPrinter(std::pair<size_t, size_t> const& dims) : dims(dims) {}
 
-void FXTPrinter::print(std::vector<std::vector<RGB>> image)
+void FXTPrinter::print(std::vector<std::vector<RGB>> const &image)
 {
     using namespace ftxui;
     auto c = Canvas(dims.first, dims.second);
@@ -35,5 +35,4 @@ void FXTPrinter::print(std::vector<std::vector<RGB>> image)
     
     Render(screen, document);
     screen.Print();
-    getchar();
 }
