@@ -1,3 +1,4 @@
+cmake . -B .\bin\ -A x64 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=C:/Users/kukht/vcpkg/scripts/buildsystems/vcpkg.cmake
 mkdir bin
-conan install . --output-folder=bin --build=missing -pr .\x64_debug_profile.txt
-cmake . -B .\bin\  --preset conan-default -A x64 -DCMAKE_BUILD_TYPE=Debug
+cd bin
+cmake --build .
