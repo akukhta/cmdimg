@@ -1,0 +1,22 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main", "cicd" ]
+
+jobs:
+  build-server:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Restore vcpkg packages
+      working-directory: ${{env.SOLUTION_FILE_PATH}}
+      run: |
+        vcpkg update
+        vcpkg integrate install
+    
+    - name: build
+      run: |
+        ls
+        bootstrap_x86_debug.bat
