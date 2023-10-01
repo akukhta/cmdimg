@@ -19,4 +19,4 @@ jobs:
     - name: build
       run: |
         ls
-        bootstrap_x86_debug.bat
+        ./bootstrap_x86_debug.bat
