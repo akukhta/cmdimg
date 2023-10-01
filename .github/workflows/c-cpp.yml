@@ -15,6 +15,7 @@ jobs:
       run: |
         vcpkg update
         vcpkg integrate install
+        vcpkg install
     
     - name: build
       run: |
