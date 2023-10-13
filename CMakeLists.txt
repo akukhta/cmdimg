@@ -19,8 +19,6 @@ add_executable(${PROJECT_NAME}
 	src/GUI/fxtprinter.cpp
 )
 
-target_include_directories(cmdimg PRIVATE ftxuilib/include)
-
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(PLATFORM "x64")
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -41,10 +39,10 @@ set(LIBRARY_NAMES ftxui-component.lib ftxui-dom.lib ftxui-screen.lib)
 set(LIBRARY_PATHS "")
 
 foreach(LIBRARY_NAME ${LIBRARY_NAMES})
-    message("Search for: ${CMAKE_SOURCE_DIR}/ftxuilib/Windows/${PLATFORM}/${CONFIGURATION}/${LIBRARY_NAME}")
+    message("Search for: ${CMAKE_SOURCE_DIR}/libs/ftxuilib/Windows/${PLATFORM}/${CONFIGURATION}/${LIBRARY_NAME}")
     find_library(LIB_${LIBRARY_NAME}_LIBRARY
         NAMES ${LIBRARY_NAME}
-        PATHS "${CMAKE_SOURCE_DIR}/ftxuilib/Windows/${PLATFORM}/${CONFIGURATION}/"
+        PATHS "${CMAKE_SOURCE_DIR}/libs/ftxuilib/Windows/${PLATFORM}/${CONFIGURATION}/"
     )
     
     if(NOT LIB_${LIBRARY_NAME}_LIBRARY)
@@ -54,19 +52,37 @@ foreach(LIBRARY_NAME ${LIBRARY_NAMES})
     list(APPEND LIBRARY_PATHS ${LIB_${LIBRARY_NAME}_LIBRARY})
 endforeach()
 
-set( OpenCV_DIR )
-if( NOT CMAKE_CL_64 )
-  set( OpenCV_DIR "C:/vcpkg/installed/x86-windows/share/opencv" )
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(OPENCV_LIBRARY_NAMES opencv_core4d.lib opencv_imgcodecs4d.lib)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(OPENCV_LIBRARY_NAMES opencv_core4.lib opencv_imgcodecs4.lib)
 else()
-  set( OpenCV_DIR "C:/vcpkg/installed/x64-windows/share/opencv" )
+    message(FATAL_ERROR "Unknown or unsupported build configuration")
 endif()
 
-find_package(OpenCV REQUIRED)
+set(OPENCV_LIBRARY_PATHS "")
 
-if( OpenCV_FOUND )
-  include_directories( ${OpenCV_INCLUDE_DIRS} )
-  link_directories( ${OpenCV_LIB_DIR} )
-  target_link_libraries(cmdimg ${OpenCV_LIBS} )
-endif()
+foreach(OPENCV_LIB_NAME ${OPENCV_LIBRARY_NAMES})
+message("Search for: ${CMAKE_SOURCE_DIR}/libs/opencv/Windows/${PLATFORM}/${CONFIGURATION}/lib/${OPENCV_LIB_NAME}")
+    find_library(LIB_${OPENCV_LIB_NAME}_LIBRARY
+        NAMES ${OPENCV_LIB_NAME}
+        PATHS "${CMAKE_SOURCE_DIR}/libs/opencv/Windows/${PLATFORM}/${CONFIGURATION}/lib"
+    )
+    
+    if(NOT LIB_${OPENCV_LIB_NAME}_LIBRARY)
+        message(FATAL_ERROR "${OPENCV_LIB_NAME} library not found")
+    endif()
 
-target_link_libraries(cmdimg ${LIBRARY_PATHS})
+    list(APPEND LIBRARY_PATHS ${LIB_${OPENCV_LIB_NAME}_LIBRARY})
+endforeach()
+
+target_include_directories(cmdimg PRIVATE libs/ftxuilib/include libs/opencv/include)
+target_link_libraries(cmdimg ${LIBRARY_PATHS} ${OPENCV_LIBRARY_PATHS})
+
+add_custom_command(
+    TARGET cmdimg
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/libs/opencv/Windows/Win32/${CONFIGURATION}/bin/"
+    "${CMAKE_BINARY_DIR}/${CONFIGURATION}/"
+)
