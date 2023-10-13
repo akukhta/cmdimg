@@ -9,14 +9,19 @@ module;
 #include <cassert>
 module FXTPrinter;
 import RGB;
+import imageCompressor;
 
-FXTPrinter::FXTPrinter(std::pair<size_t, size_t> const& dims) : dims(dims) {}
+FXTPrinter::FXTPrinter(std::pair<size_t, size_t> const& dims, std::unique_ptr<IParser> parser, bool borderEnabled)
+    : IPrinter(dims, std::move(parser), borderEnabled) {}
 
-void FXTPrinter::print(std::vector<std::vector<RGB>> const &image, bool borderEnabled)
+void FXTPrinter::print()
 {
     using namespace ftxui;
     auto c = Canvas(dims.first, dims.second);
-    
+
+    ImageCompressor compressor{ std::move(parser->parse()) };
+    auto image = compressor.compressBilinear(dims.first, dims.second);
+
     assert(image.size() == dims.second);
     assert(image[0].size() == dims.first);
 

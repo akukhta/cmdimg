@@ -9,10 +9,15 @@ add_executable(${PROJECT_NAME}
 	src/Common/Dimentions.hpp
 	src/Common/ArgsParser.ixx
 	src/Common/ArgsParser.cpp
+	src/Common/MediaPreviewer.ixx
+	src/Common/IParser.ixx
+	src/Common/IPrinter.ixx
+	src/Common/PrinterParserFactory.ixx
+	src/Common/MediaPreviewer.cpp
 	src/Image/NearestNeighboorCompressor.ixx
 	src/Image/NearestNeighboorCompressor.cpp
-    	src/Image/ImageParser.ixx
-    	src/Image/ImageParser.cpp
+    src/Image/ImageParser.ixx
+    src/Image/ImageParser.cpp
 	src/Image/RGB.ixx
 	src/Image/RGB.cpp
 	src/GUI/fxtprinter.ixx

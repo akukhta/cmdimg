@@ -7,8 +7,13 @@ module;
 #include <stdexcept>
 #include <iostream>
 module ImageParser;
+import RGB;
 
-std::vector<std::vector<RGB>> ImageParser::parseImage(std::string_view fileName) const
+ImageParser::ImageParser(std::string_view fileName) : IParser(fileName)
+{
+}
+
+std::vector<std::vector<RGB>> ImageParser::parse()
 {	
 	if (!std::filesystem::exists(fileName))
 	{

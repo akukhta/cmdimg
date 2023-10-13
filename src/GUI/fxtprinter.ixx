@@ -8,13 +8,11 @@ module;
 #include <vector>
 export module FXTPrinter;
 import RGB;
+import IPrinter;
 
-export class FXTPrinter
+export class FXTPrinter : public IPrinter
 {
 public:
-	FXTPrinter(std::pair<size_t, size_t> const &dims);
-	void print(std::vector<std::vector<RGB>> const &image, bool borderEnabled);
-
-private:
-	std::pair<size_t, size_t> dims;
+	FXTPrinter(std::pair<size_t, size_t> const &dims, std::unique_ptr<IParser> parser, bool borderEnabled = false);
+	void print() override;
 };
