@@ -92,9 +92,9 @@ void FXTVideoPrinter::parseFrame()
             drawn = false;
             this->frame = std::move(compressor.compressBilinear(dims.first, dims.second));
             readyToDraw = true;
+            screen->PostEvent(ftxui::Event{});
             cv.notify_one();
         }
     }
-
     screen->Exit();
 }
