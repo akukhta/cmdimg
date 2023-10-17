@@ -14,14 +14,18 @@ add_executable(${PROJECT_NAME}
 	src/Common/IPrinter.ixx
 	src/Common/PrinterParserFactory.ixx
 	src/Common/MediaPreviewer.cpp
-	src/Image/NearestNeighboorCompressor.ixx
-	src/Image/NearestNeighboorCompressor.cpp
-    src/Image/ImageParser.ixx
-    src/Image/ImageParser.cpp
-	src/Image/RGB.ixx
-	src/Image/RGB.cpp
-	src/GUI/fxtprinter.ixx
-	src/GUI/fxtprinter.cpp
+	src/Common/NearestNeighboorCompressor.ixx
+	src/Common/NearestNeighboorCompressor.cpp
+	src/Common/RGB.ixx
+	src/Common/RGB.cpp
+    	src/Image/ImageParser.ixx
+    	src/Image/ImageParser.cpp
+	src/image/fxtimageprinter.ixx
+	src/image/fxtimageprinter.cpp
+	src/video/fxtvideoprinter.ixx
+	src/video/fxtvideoprinter.cpp
+	src/video/VideoParser.ixx
+	src/video/VideoParser.cpp
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -58,9 +62,9 @@ foreach(LIBRARY_NAME ${LIBRARY_NAMES})
 endforeach()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(OPENCV_LIBRARY_NAMES opencv_core4d.lib opencv_imgcodecs4d.lib)
+    set(OPENCV_LIBRARY_NAMES opencv_core4d.lib opencv_imgcodecs4d.lib opencv_videoio4d.lib opencv_video4d.lib)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(OPENCV_LIBRARY_NAMES opencv_core4.lib opencv_imgcodecs4.lib)
+    set(OPENCV_LIBRARY_NAMES opencv_core4.lib opencv_imgcodecs4.lib opencv_videoio4.lib opencv_video4.lib)
 else()
     message(FATAL_ERROR "Unknown or unsupported build configuration")
 endif()

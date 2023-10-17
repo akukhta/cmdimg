@@ -9,8 +9,10 @@ export module PrinterParserFactory;
 
 import IParser;
 import ImageParser;
+import VideoParser;
 import IPrinter;
 import FXTPrinter;
+import FXTVideoPrinter;
 
 export class PrinterParserFactory
 {
@@ -25,7 +27,12 @@ public:
 			return std::make_unique<ImageParser>(fileName);
 		}
 
-		return nullptr;
+		if (videoFormats.find(ext) != videoFormats.end())
+		{
+			return std::make_unique<VideoParser>(fileName);
+		}
+
+		throw std::runtime_error("Unsupported file format!");
 	}
 
 	std::unique_ptr<IPrinter> getPrinter(std::pair<size_t, size_t> const& dims,
@@ -35,8 +42,13 @@ public:
 		{
 			return std::make_unique<FXTPrinter>(dims, std::move(parser), borderEnabled);
 		}
+		
+		if (videoFormats.find(ext) != videoFormats.end())
+		{
+			return std::make_unique<FXTVideoPrinter>(dims, std::move(parser), borderEnabled);
+		}
 
-		return nullptr;
+		throw std::runtime_error("Unsupported file format!");
 	}
 
 private:
@@ -60,6 +72,8 @@ private:
 			"jpg", "jpeg", "jpe", "bmp", "dib", "jp2", "png", "webp", "avif", "pbm", "pgm",
 			"ppm", "pxm", "pnm", "pfm", "sr", "ras", "tiff", "tif", "exr", "hdr", "pic"
 		};
+
+	static std::set<std::string_view> inline const videoFormats = { "avi" };
 
 	std::string_view fileName;
 	std::string ext;
