@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
 	src/Common/MediaPreviewer.cpp
 	src/Common/NearestNeighboorCompressor.ixx
 	src/Common/NearestNeighboorCompressor.cpp
+	src/Common/TimeManager.hpp
 	src/Common/RGB.ixx
 	src/Common/RGB.cpp
     	src/Image/ImageParser.ixx

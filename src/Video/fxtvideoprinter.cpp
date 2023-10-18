@@ -22,17 +22,25 @@ FXTVideoPrinter::FXTVideoPrinter(std::pair<size_t, size_t> const& dims,
     screen(nullptr), readyToDraw(false), drawn(true)
 {
     frameParsingThread = std::jthread(std::bind(&FXTVideoPrinter::parseFrame, this));
+
+    if (auto vp = dynamic_cast<VideoParser*>(this->parser.get()))
+    {
+        fps = vp->getFPS();
+        timePerFrame = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::seconds(1)) / fps;
+    }
 }
 
 void FXTVideoPrinter::print()
 {
     auto rendererFrame = ftxui::Renderer([&] {
         auto c = ftxui::Canvas(dims.first, dims.second);
-        
         {
             std::unique_lock fm(printerMutex);
             cv.wait(fm, [&]() { return readyToDraw; });
             readyToDraw = false;
+            
+            tManager.reset();
+            
             if (!frame.empty())
             {
                 for (int y = 0; y < dims.second; y++)
@@ -47,6 +55,13 @@ void FXTVideoPrinter::print()
 
             drawn = true;
             cv.notify_one();
+
+            auto dT = tManager.getDelta();
+            
+            if (dT < timePerFrame)
+            {
+                std::this_thread::sleep_for(std::chrono::microseconds(dT) - tManager.getDelta());
+            }
         }
         return canvas(std::move(c));
         });
@@ -85,7 +100,6 @@ void FXTVideoPrinter::parseFrame()
         }
 
         ImageCompressor compressor{ std::move(frame) };
-
         {
             std::unique_lock fm(printerMutex);
             cv.wait(fm, [&]() { return drawn; });
