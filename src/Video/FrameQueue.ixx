@@ -9,8 +9,8 @@ export class FrameQueue : public IFrameBuffer
 public:
 	FrameQueue(size_t maxFrames);
 
-	virtual void addFrame(frame const& fr) override;
-	virtual frame getFrame() override;
+	virtual void addFrame(frame fr) override;
+	virtual std::optional<frame> getFrame() override;
 
 private:
 	std::queue<frame> frames;

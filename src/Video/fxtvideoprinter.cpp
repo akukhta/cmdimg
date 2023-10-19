@@ -19,7 +19,7 @@ import VideoParser;
 
 FXTVideoPrinter::FXTVideoPrinter(std::pair<size_t, size_t> const& dims,
     std::unique_ptr<IParser> parser, bool borderEnabled) : IPrinter(dims, std::move(parser), borderEnabled), 
-    screen(nullptr), readyToDraw(false), drawn(true)
+        screen(nullptr), frameBuffer(maxFramesInBuffer)
 {
     frameParsingThread = std::jthread(std::bind(&FXTVideoPrinter::parseFrame, this));
 
@@ -40,28 +40,25 @@ void FXTVideoPrinter::print()
         rendererFrame = ftxui::Renderer([&] {
             auto c = ftxui::Canvas(dims.first, dims.second);
             {
-                std::unique_lock fm(printerMutex);
-                cv.wait(fm, [&]() { return readyToDraw; });
-                readyToDraw = false;
-
                 tManager.reset();
+                
+                auto frameToDraw = frameBuffer.getFrame();
 
-                if (!frame.empty())
+                if (frameToDraw)
                 {
                     for (int y = 0; y < dims.second; y++)
                     {
                         for (int x = 0; x < dims.first; x++)
                         {
-                            auto& pixel = frame[y][x];
+                            auto& pixel = frameToDraw.value()[y][x];
                             c.DrawPoint(x, y, true, ftxui::Color(pixel.R, pixel.G, pixel.B));
                         }
                     }
 
+                    screen->PostEvent(ftxui::Event{});
                     fpscounter.inc();
                 }
-
-                drawn = true;
-                cv.notify_one();
+                
 
                 auto dT = tManager.getDelta();
 
@@ -88,25 +85,22 @@ void FXTVideoPrinter::print()
         rendererFrame = ftxui::Renderer([&] {
             auto c = ftxui::Canvas(dims.first, dims.second);
             {
-                std::unique_lock fm(printerMutex);
-                cv.wait(fm, [&]() { return readyToDraw; });
-                readyToDraw = false;
+                auto frameToDraw = frameBuffer.getFrame();
 
-                if (!frame.empty())
+                if (frameToDraw)
                 {
                     for (int y = 0; y < dims.second; y++)
                     {
                         for (int x = 0; x < dims.first; x++)
                         {
-                            auto& pixel = frame[y][x];
+                            auto& pixel = frameToDraw.value()[y][x];
                             c.DrawPoint(x, y, true, ftxui::Color(pixel.R, pixel.G, pixel.B));
                         }
                     }
 
                     fpscounter.inc();
+                    screen->PostEvent(ftxui::Event{});
                 }
-
-                drawn = true;
                 cv.notify_one();
 
                 auto dT = tManager.getDelta();
@@ -182,14 +176,9 @@ void FXTVideoPrinter::parseFrame()
         }
 
         ImageCompressor compressor{ std::move(frame) };
+        
         {
-            std::unique_lock fm(printerMutex);
-            cv.wait(fm, [&]() { return drawn; });
-            drawn = false;
-            this->frame = std::move(compressor.compressBilinear(dims.first, dims.second));
-            readyToDraw = true;
-            screen->PostEvent(ftxui::Event{});
-            cv.notify_one();
+            frameBuffer.addFrame(std::move(compressor.compressBilinear(dims.first, dims.second)));
         }
     }
     screen->Exit();

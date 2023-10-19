@@ -14,6 +14,7 @@ export module FXTVideoPrinter;
 import RGB;
 import IPrinter;
 import fpscounter;
+import FrameQueue;
 
 export class FXTVideoPrinter : public IPrinter
 {
@@ -28,18 +29,17 @@ private:
 	void parseFrame();
 
 	ftxui::ScreenInteractive* screen;
-	std::vector<std::vector<RGB>> frame;
 	std::jthread frameParsingThread;
 	std::mutex printerMutex;
 	std::condition_variable cv;
 	std::chrono::microseconds timePerFrame;
 	TimeManager tManager;
 	FPSCounter fpscounter;
-
-	bool readyToDraw;
-	bool drawn;
+	FrameQueue frameBuffer;
+	
 	int fps;
-
 	bool nofpslock;
 	bool fpsShow;
+
+	static inline size_t const maxFramesInBuffer = 60;
 };
