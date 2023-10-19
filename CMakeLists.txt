@@ -19,8 +19,8 @@ add_executable(${PROJECT_NAME}
 	src/Common/TimeManager.hpp
 	src/Common/RGB.ixx
 	src/Common/RGB.cpp
-    	src/Image/ImageParser.ixx
-    	src/Image/ImageParser.cpp
+    src/Image/ImageParser.ixx
+    src/Image/ImageParser.cpp
 	src/image/fxtimageprinter.ixx
 	src/image/fxtimageprinter.cpp
 	src/video/fxtvideoprinter.ixx
@@ -29,6 +29,9 @@ add_executable(${PROJECT_NAME}
 	src/video/VideoParser.cpp
 	src/video/fpscounter.ixx
 	src/video/fpscounter.cpp
+	src/video/IFrameBuffer.ixx
+	src/video/FrameQueue.ixx
+	src/video/FrameQueue.cpp
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
