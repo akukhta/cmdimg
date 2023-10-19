@@ -13,6 +13,7 @@ module;
 export module FXTVideoPrinter;
 import RGB;
 import IPrinter;
+import fpscounter;
 
 export class FXTVideoPrinter : public IPrinter
 {
@@ -28,6 +29,7 @@ private:
 	std::condition_variable cv;
 	std::chrono::microseconds timePerFrame;
 	TimeManager tManager;
+	FPSCounter fpscounter;
 
 	bool readyToDraw;
 	bool drawn;

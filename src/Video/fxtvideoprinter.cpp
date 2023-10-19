@@ -26,7 +26,8 @@ FXTVideoPrinter::FXTVideoPrinter(std::pair<size_t, size_t> const& dims,
     if (auto vp = dynamic_cast<VideoParser*>(this->parser.get()))
     {
         fps = vp->getFPS();
-        timePerFrame = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::seconds(1)) / fps;
+        timePerFrame = std::chrono::microseconds(1000000) / fps;
+        fpscounter.run();
     }
 }
 
@@ -51,6 +52,8 @@ void FXTVideoPrinter::print()
                         c.DrawPoint(x, y, true, ftxui::Color(pixel.R, pixel.G, pixel.B));
                     }
                 }
+
+                fpscounter.inc();
             }
 
             drawn = true;
@@ -60,14 +63,28 @@ void FXTVideoPrinter::print()
             
             if (dT < timePerFrame)
             {
-                std::this_thread::sleep_for(std::chrono::microseconds(dT) - tManager.getDelta());
+                std::this_thread::sleep_for(timePerFrame - dT);
             }
         }
+
+        if (borderEnabled)
+        {
+            return canvas(std::move(c)) | ftxui::border;
+        }
+        else
+        {
+            return canvas(std::move(c));
+        }
+
+        });
+
+    auto renderer_text = ftxui::Renderer([&] {
+        auto c = ftxui::Canvas(20, 20);
+        c.DrawText(0, 0, std::format("FPS: {}", fpscounter.getFPS()));
         return canvas(std::move(c));
         });
 
-
-    auto hc = ftxui::Container::Horizontal({ rendererFrame });
+    auto hc = ftxui::Container::Horizontal({ rendererFrame, renderer_text });
 
     auto component = ftxui::Container::Horizontal({
         hc

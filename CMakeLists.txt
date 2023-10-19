@@ -27,6 +27,8 @@ add_executable(${PROJECT_NAME}
 	src/video/fxtvideoprinter.cpp
 	src/video/VideoParser.ixx
 	src/video/VideoParser.cpp
+	src/video/fpscounter.ixx
+	src/video/fpscounter.cpp
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
