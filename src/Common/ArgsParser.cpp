@@ -7,18 +7,18 @@ module ArgsParser;
 ArgsParser::ArgsParser(int argc, char** argv) : argc(argc), argv(argv),
 	argsCop
 	{
-		std::bind(&ArgsParser::defHandler, this, "--border", std::placeholders::_1, std::ref(_border)),
-		std::bind(&ArgsParser::defHandler, this, "--showfps", std::placeholders::_1, std::ref(_fps)),
-		std::bind(&ArgsParser::defHandler, this, "--nofpslock", std::placeholders::_1, std::ref(_nofpslock)),
+		{"--border", &_border},
+		{"--showfps", &_fps},
+		{"--nofpslock", &_nofpslock}
 	}
 {
 	_fileName = argv[1];
 	
 	for (size_t i = 2; i < argc; i++)
 	{
-		for (auto& handler : argsCop)
+		if (auto it = argsCop.find(argv[i]); it != argsCop.end())
 		{
-			handler(argv[i]);
+			*it->second = true;
 		}
 	}
 }

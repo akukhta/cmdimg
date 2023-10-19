@@ -1,6 +1,6 @@
 module;
 #include <string_view>
-#include <vector>
+#include <unordered_map>
 #include <functional>
 
 export module ArgsParser;
@@ -24,13 +24,5 @@ private:
 	bool _fps = false;
 	bool _nofpslock = false;
 
-	std::vector<std::function<void(std::string const&)>> argsCop;
-
-	void defHandler(std::string const& arg, std::string_view expectedName, bool& field)
-	{
-		if (arg == expectedName)
-		{
-			field = true;
-		}
-	};
+	std::unordered_map<std::string_view, bool*> argsCop;
 };
