@@ -63,7 +63,8 @@ void FXTVideoPrinter::print()
             
             if (dT < timePerFrame)
             {
-                std::this_thread::sleep_for(timePerFrame - dT);
+                auto v = timePerFrame - dT;
+                std::this_thread::sleep_for(v / 10);
             }
         }
 
