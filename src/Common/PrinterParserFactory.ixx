@@ -13,12 +13,13 @@ import VideoParser;
 import IPrinter;
 import FXTPrinter;
 import FXTVideoPrinter;
+import ArgsParser;
 
 export class PrinterParserFactory
 {
 public:
 
-	PrinterParserFactory(std::string_view fileName) : fileName(fileName), ext(getExtension(fileName)) {}
+	PrinterParserFactory(ArgsParser &parser) : argsParser(parser), fileName(argsParser.fileName()), ext(getExtension(fileName)) {}
 
 	std::unique_ptr<IParser> getParser()
 	{
@@ -45,7 +46,12 @@ public:
 		
 		if (videoFormats.find(ext) != videoFormats.end())
 		{
-			return std::make_unique<FXTVideoPrinter>(dims, std::move(parser), borderEnabled);
+			auto vPrinter = std::make_unique<FXTVideoPrinter>(dims, std::move(parser), borderEnabled);
+			
+			vPrinter->showFPS(argsParser.fps());
+			vPrinter->unlockFPS(argsParser.nofpslock());
+
+			return vPrinter;
 		}
 
 		throw std::runtime_error("Unsupported file format!");
@@ -74,7 +80,8 @@ private:
 		};
 
 	static std::set<std::string_view> inline const videoFormats = { "avi" };
-
+	
+	ArgsParser &argsParser;
 	std::string_view fileName;
 	std::string ext;
 };

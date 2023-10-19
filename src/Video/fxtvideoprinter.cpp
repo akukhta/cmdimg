@@ -33,59 +33,113 @@ FXTVideoPrinter::FXTVideoPrinter(std::pair<size_t, size_t> const& dims,
 
 void FXTVideoPrinter::print()
 {
-    auto rendererFrame = ftxui::Renderer([&] {
-        auto c = ftxui::Canvas(dims.first, dims.second);
-        {
-            std::unique_lock fm(printerMutex);
-            cv.wait(fm, [&]() { return readyToDraw; });
-            readyToDraw = false;
-            
-            tManager.reset();
-            
-            if (!frame.empty())
+    ftxui::Component rendererFrame;
+    
+    if (nofpslock == false)
+    {
+        rendererFrame = ftxui::Renderer([&] {
+            auto c = ftxui::Canvas(dims.first, dims.second);
             {
-                for (int y = 0; y < dims.second; y++)
+                std::unique_lock fm(printerMutex);
+                cv.wait(fm, [&]() { return readyToDraw; });
+                readyToDraw = false;
+
+                tManager.reset();
+
+                if (!frame.empty())
                 {
-                    for (int x = 0; x < dims.first; x++)
+                    for (int y = 0; y < dims.second; y++)
                     {
-                        auto& pixel = frame[y][x];
-                        c.DrawPoint(x, y, true, ftxui::Color(pixel.R, pixel.G, pixel.B));
+                        for (int x = 0; x < dims.first; x++)
+                        {
+                            auto& pixel = frame[y][x];
+                            c.DrawPoint(x, y, true, ftxui::Color(pixel.R, pixel.G, pixel.B));
+                        }
                     }
+
+                    fpscounter.inc();
                 }
 
-                fpscounter.inc();
+                drawn = true;
+                cv.notify_one();
+
+                auto dT = tManager.getDelta();
+
+                if (dT < timePerFrame)
+                {
+                    auto v = timePerFrame - dT;
+                    std::this_thread::sleep_for(v / 10);
+                }
             }
 
-            drawn = true;
-            cv.notify_one();
-
-            auto dT = tManager.getDelta();
-            
-            if (dT < timePerFrame)
+            if (borderEnabled)
             {
-                auto v = timePerFrame - dT;
-                std::this_thread::sleep_for(v / 10);
+                return canvas(std::move(c)) | ftxui::border;
             }
-        }
+            else
+            {
+                return canvas(std::move(c));
+            }
 
-        if (borderEnabled)
-        {
-            return canvas(std::move(c)) | ftxui::border;
-        }
-        else
-        {
+            });
+    }
+    else
+    {
+        rendererFrame = ftxui::Renderer([&] {
+            auto c = ftxui::Canvas(dims.first, dims.second);
+            {
+                std::unique_lock fm(printerMutex);
+                cv.wait(fm, [&]() { return readyToDraw; });
+                readyToDraw = false;
+
+                if (!frame.empty())
+                {
+                    for (int y = 0; y < dims.second; y++)
+                    {
+                        for (int x = 0; x < dims.first; x++)
+                        {
+                            auto& pixel = frame[y][x];
+                            c.DrawPoint(x, y, true, ftxui::Color(pixel.R, pixel.G, pixel.B));
+                        }
+                    }
+
+                    fpscounter.inc();
+                }
+
+                drawn = true;
+                cv.notify_one();
+
+                auto dT = tManager.getDelta();
+            }
+
+            if (borderEnabled)
+            {
+                return canvas(std::move(c)) | ftxui::border;
+            }
+            else
+            {
+                return canvas(std::move(c));
+            }
+
+            });
+    }
+
+    ftxui::Component hc;
+
+    if (fpsShow)
+    { 
+        auto renderer_text = ftxui::Renderer([&] {
+            auto c = ftxui::Canvas(20, 20);
+            c.DrawText(0, 0, std::format("FPS: {}", fpscounter.getFPS()));
             return canvas(std::move(c));
-        }
+            });
 
-        });
-
-    auto renderer_text = ftxui::Renderer([&] {
-        auto c = ftxui::Canvas(20, 20);
-        c.DrawText(0, 0, std::format("FPS: {}", fpscounter.getFPS()));
-        return canvas(std::move(c));
-        });
-
-    auto hc = ftxui::Container::Horizontal({ rendererFrame, renderer_text });
+        hc = ftxui::Container::Horizontal({ rendererFrame, renderer_text });
+    }
+    else
+    {
+        hc = ftxui::Container::Horizontal({ rendererFrame });
+    }
 
     auto component = ftxui::Container::Horizontal({
         hc
@@ -97,6 +151,16 @@ void FXTVideoPrinter::print()
 
     screen = new ftxui::ScreenInteractive{ ftxui::ScreenInteractive::FitComponent() };
     screen->Loop(component_renderer);
+}
+
+void FXTVideoPrinter::unlockFPS(bool val)
+{
+    nofpslock = val;
+}
+
+void FXTVideoPrinter::showFPS(bool val)
+{
+    fpsShow = val;
 }
 
 void FXTVideoPrinter::parseFrame()

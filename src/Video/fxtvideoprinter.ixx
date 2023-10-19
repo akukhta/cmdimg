@@ -20,7 +20,12 @@ export class FXTVideoPrinter : public IPrinter
 public:
 	FXTVideoPrinter(std::pair<size_t, size_t> const& dims, std::unique_ptr<IParser> parser, bool borderEnabled = false);
 	void print() override;
+	
+	void unlockFPS(bool val);
+	void showFPS(bool val);
+
 private:
+	void parseFrame();
 
 	ftxui::ScreenInteractive* screen;
 	std::vector<std::vector<RGB>> frame;
@@ -34,6 +39,7 @@ private:
 	bool readyToDraw;
 	bool drawn;
 	int fps;
-	
-	void parseFrame();
+
+	bool nofpslock;
+	bool fpsShow;
 };

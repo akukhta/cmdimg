@@ -9,7 +9,7 @@ import IPrinter;
 export class MediaPreviewer
 {
 public:
-	MediaPreviewer(ArgsParser args);
+	MediaPreviewer(ArgsParser &args);
 
 	void preview();
 private:
